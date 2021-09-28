@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application with JavaScript (CRUD of employees)</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+
+</head>
+<body>
+    
+    <div class="container">
+        <br/>
+        <div class="row">
+            
+            <!-- Modal -->
+            <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <form action="javascript:void(0);" method="post" onsubmit="application.Update()">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit employee</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="edit_id" class="form-label">ID:</label>
+                                    <input readonly type="text" class="form-control" name="edit_id" id="edit_id" placeholder="ID">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_name" class="form-label">Name:</label>
+                                    <input type="text" required class="form-control" name="edit_name" id="edit_name" placeholder="Employee name">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_email" class="form-label">Email:</label>
+                                    <input type="email" required class="form-control" name="edit_email" id="edit_email" aria-describedby="emailHelpId" placeholder="Employee email">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-success">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">
+                        Employees
+                    </div>
+                    <div class="card-body">
+                        <form action="javascript:void(0);" method="post" onsubmit="application.Add()">
+                            <div class="mb-3">
+                              <label for="_name" class="form-label">Name:</label>
+                              <input type="text" required class="form-control" name="_name" id="_name" placeholder="Employee name">
+                            </div>
+
+                            <div class="mb-3">
+                              <label for="email" class="form-label">Email:</label>
+                              <input type="email" required class="form-control" name="email" id="email" aria-describedby="emailHelpId" placeholder="Employee email">
+                            </div>
+
+                            <button type="submit" class="btn btn-success">Add Employee</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employees">
+
+                    </tbody>
+                </table>
+                
+            </div>  
+        </div>  
+
+    </div>
+
+    <script>
+
+        var url = "http://localhost/employees/";
+        var modal = new bootstrap.Modal(document.getElementById('modelId'), {keyboard:false});
+
+        var application = new function() {
+
+            this.edit_id = document.getElementById("edit_id");
+            this.edit_name = document.getElementById("edit_name");
+            this.edit_email = document.getElementById("edit_email");
+
+            this._name = document.getElementById("_name");
+            this.email = document.getElementById("email");
+
+            this.employees = document.getElementById("employees");
+            this.Read = function() {
+
+                var data = "";
+
+                fetch(url)
+                .then(r => r.json())
+                .then((response) => {
+                    console.log(response);
+                    response.map(
+                        function(employee, index, array) {
+                            data += "<tr>";
+                            data += "<td>"+employee.id+"</td>";
+                            data += "<td>"+employee.name+"</td>";
+                            data += "<td>"+employee.email+"</td>";
+                            data += '<td> <div class="btn-group" role="group" aria-label=""><button type="button" class="btn btn-info" onclick="application.Edit('+employee.id+')">Edit</button><button type="button" class="btn btn-danger" onclick="application.Delete('+employee.id+')">Delete</button></div></td>';
+                            data += "</tr>"; 
+                        }
+                    );
+                    return this.employees.innerHTML = data;
+                })
+                .catch(console.log);
+                //data = "<tr> <td>1</td> <td>Oscar</td> <td>uhperezoscar@gmail.com</td> <td>Edit|Delete</td> </tr>";
+                
+            };
+
+            this.Add = function() {
+                console.log(_name.value);
+                console.log(email.value);
+
+                var sendData = {name:this._name.value, email:this.email.value}
+
+                fetch(url+"?insert=1", {method:"POST", body:JSON.stringify(sendData)})
+                .then(response => response.json())
+                .then((dataResponse) => {
+                    console.log("Data inserted");
+                    this.Read();
+                })
+                .catch(console.log);
+            };
+
+            this.Delete = function(id) {
+                console.log(id);
+
+                fetch(url+"?delete="+id)
+                .then(response => response.json())
+                .then((dataResponse) => {
+                    this.Read();
+                })
+                .catch(console.log);
+            };
+
+            this.Edit = function(id) {
+                console.log(id);
+                fetch(url+"?consult="+id)
+                .then(response => response.json())
+                .then((dataResponse) => {
+                    console.log(dataResponse);
+                    this.edit_id.value = dataResponse[0]['id'];
+                    this.edit_name.value = dataResponse[0]['name'];
+                    this.edit_email.value = dataResponse[0]['email'];
+                })
+                .catch(console.log);
+                modal.show();
+            };
+
+            this.Update = function() {
+                var sendData = {id:this.edit_id.value, name:this.edit_name.value, email:this.edit_email.value}
+
+                fetch(url+"?update=1", {method:"POST", body:JSON.stringify(sendData)})
+                .then(response => response.json())
+                .then((dataResponse) => {
+                    console.log("Data updated");
+                    this.Read();
+                    modal.hide();
+                })
+                .catch(console.log);
+            }
+        }
+        application.Read();
+
+    </script>
+    
+</body>
+</html>
